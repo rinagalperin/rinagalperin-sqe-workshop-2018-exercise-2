@@ -11,14 +11,14 @@ export {ParseFunctionUnit};
 
 function ParseFunctionUnit(functionUnit) {
     entries = [];
-    RouteContent(functionUnit);
+    RouteContent(functionUnit.body[0]); // we need to parse only the first function
 }
 
 /* --------- Main Handlers (contain nested statements / expressions) --------- */
 
 function RouteContent(content){
     switch(content.type) {
-    case 'Program':
+    case 'FunctionDeclaration':
         FunctionDeclarationHandler(content);
         break;
     case 'BlockStatement':
@@ -53,9 +53,9 @@ function RouteContentExtension(statement) {
 function FunctionDeclarationHandler(functionUnit) {
     let functionDeclarationEntry = {};
 
-    functionDeclarationEntry.Line = functionUnit.body[0].loc.start.line;
+    functionDeclarationEntry.Line = functionUnit.loc.start.line;
     functionDeclarationEntry.Type = 'function declaration';
-    functionDeclarationEntry.Name = functionUnit.body[0].id.name;
+    functionDeclarationEntry.Name = functionUnit.id.name;
     functionDeclarationEntry.Condition = '';
     functionDeclarationEntry.Value = '';
 
@@ -63,7 +63,7 @@ function FunctionDeclarationHandler(functionUnit) {
 
     ArgumentsHandler(functionUnit);
 
-    let statements = functionUnit.body[0].body.body; // function's body: BlockStatement
+    let statements = functionUnit.body.body; // function's body: BlockStatement
 
     for(const statement in statements){
         RouteContent(statements[statement]);
@@ -71,12 +71,12 @@ function FunctionDeclarationHandler(functionUnit) {
 }
 
 function ArgumentsHandler(functionUnit){
-    for(let argument in functionUnit.body[0].params){
+    for(let argument in functionUnit.params){
         let functionArgumentsEntry = {};
 
-        functionArgumentsEntry.Line = functionUnit.body[0].params[argument].loc.start.line;
+        functionArgumentsEntry.Line = functionUnit.params[argument].loc.start.line;
         functionArgumentsEntry.Type = 'variable declaration';
-        functionArgumentsEntry.Name = functionUnit.body[0].params[argument].name;
+        functionArgumentsEntry.Name = functionUnit.params[argument].name;
         functionArgumentsEntry.Condition = '';
         functionArgumentsEntry.Value = '';
 
