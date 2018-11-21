@@ -1,3 +1,7 @@
+/* --------- Global Variables --------- */
+
+let rows;
+
 /* --------- Exports --------- */
 
 export {CreateResultTable};
@@ -6,11 +10,12 @@ export {ClearTable};
 /* --------- Imports --------- */
 
 import {entries} from './functionUnitParser';
-import {rows} from './functionUnitParser';
 
 /* --------- Display Results --------- */
 
 function CreateResultTable(isTable) {
+    rows = 1;
+
     if(isTable){
         let table = window.document.getElementById('table');
 
@@ -44,7 +49,7 @@ function PopulateTable(table){
 
         let cell4 = row.insertCell(4); // Value
         cell4.innerHTML = entries[entry].Value;
-        rows += 1;
+        rows = rows + 1;
     }
 }
 

@@ -1,19 +1,16 @@
+/* --------- Global Variables --------- */
+
+let entries = [];
+
 /* --------- Exports --------- */
 
 export {entries};
-export {rows};
 export {ParseFunctionUnit};
-
-/* --------- Global Variables --------- */
-
-let entries;
-let rows;
 
 /* --------- Entry Point --------- */
 
 function ParseFunctionUnit(functionUnit) {
     entries = [];
-    rows = 1;
     RouteContent(functionUnit);
 }
 

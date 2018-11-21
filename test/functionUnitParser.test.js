@@ -3,7 +3,7 @@ import {ParseFunctionUnit} from '../src/js/functionUnitParser';
 import {parseCode} from '../src/js/code-analyzer';
 import {entries} from '../src/js/functionUnitParser';
 
-/* --------- If Statement Test --------- */
+/* --------- If Statement Tests --------- */
 
 describe('The if statement parser', () => {
     it('is parsing a simple condition correctly', () => {
@@ -100,7 +100,7 @@ describe('The if statement parser', () => {
     });
 });
 
-/* --------- For Statement Test --------- */
+/* --------- For Statement Tests --------- */
 
 describe('The for statement parser', () => {
     it('is parsing a simple condition correctly', () => {
@@ -136,7 +136,7 @@ describe('The for statement parser', () => {
         assert.deepEqual(actual, expected);
     });
 
-    it('is parsing a simple update expression correctly', () => {
+    it('is parsing a \'++\' update expression correctly', () => {
         // arrange
         let codeToTest = 'function f(){for(let x = 0; x < 10; x++){}}';
 
@@ -153,7 +153,7 @@ describe('The for statement parser', () => {
     });
 });
 
-/* --------- While Statement Test --------- */
+/* --------- While Statement Tests --------- */
 
 describe('The while statement parser', () => {
     it('is parsing a simple condition correctly', () => {
