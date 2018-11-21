@@ -9,7 +9,7 @@ export {ParseFunctionUnit};
 let entries;
 let rows;
 
-/* --------- Function - Unit - Parser Entry Point --------- */
+/* --------- Entry Point --------- */
 
 function ParseFunctionUnit(functionUnit) {
     entries = [];
@@ -187,7 +187,7 @@ function ForStatementHandler(forStatement){
     forStatementEntry.Line = forStatement.loc.start.line;
     forStatementEntry.Type = 'for statement';
     forStatementEntry.Name = '';
-    forStatementEntry.Condition = ExtractForCondition(forStatement);
+    forStatementEntry.Condition = ForConditionExtractor(forStatement);
     forStatementEntry.Value = '';
 
     entries.push(forStatementEntry);
@@ -207,7 +207,7 @@ function ReturnStatementHandler(returnStatement){
     entries.push(returnStatementEntry);
 }
 
-/* --------- Expression Handlers --------- */
+/* --------- Expression Extractors --------- */
 
 /**
  * @return {string}
@@ -229,7 +229,10 @@ function BasicExpressionExtractor(expression){
     }
 }
 
-function ExtractForCondition(forStatement){
+/**
+ * @return {string}
+ */
+function ForConditionExtractor(forStatement){
     let init = forStatement.init.declarations[0].id.name + ' = ' +forStatement.init.declarations[0].init.value;
     let test = forStatement.test.left.name + ' ' + forStatement.test.operator + ' ' + BasicExpressionExtractor(forStatement.test.right);
     let update =
