@@ -213,7 +213,7 @@ function ReturnStatementHandler(returnStatement){
     returnStatementEntry.Type = 'return statement';
     returnStatementEntry.Name = '';
     returnStatementEntry.Condition = '';
-    returnStatementEntry.Value = BasicExpressionExtractor(returnStatement.argument);
+    returnStatementEntry.Value = returnStatement.argument == null ? '' : BasicExpressionExtractor(returnStatement.argument);
 
     entries.push(returnStatementEntry);
 }
@@ -244,12 +244,14 @@ function BasicExpressionExtractor(expression){
  * @return {string}
  */
 function ForConditionExtractor(forStatement){
-    let init = forStatement.init.declarations[0].id.name + ' = ' +forStatement.init.declarations[0].init.value;
+    let init = forStatement.init.declarations == null ?
+        (BasicExpressionExtractor(forStatement.init.left) + ' = ' + BasicExpressionExtractor(forStatement.init.right)) :
+        (forStatement.init.declarations[0].id.name + ' = ' + BasicExpressionExtractor(forStatement.init.declarations[0].init));
     let test = forStatement.test.left.name + ' ' + forStatement.test.operator + ' ' + BasicExpressionExtractor(forStatement.test.right);
     let update =
         forStatement.update.argument == null ?
             forStatement.update.left.name + ' ' + forStatement.update.operator + ' ' + BasicExpressionExtractor(forStatement.update.right) :
-            forStatement.update.argument.name + forStatement.update.operator; // x++
+            forStatement.update.prefix ? forStatement.update.operator+forStatement.update.argument.name : forStatement.update.argument.name+forStatement.update.operator;
 
     return init + '; ' + test + '; ' + update;
 }

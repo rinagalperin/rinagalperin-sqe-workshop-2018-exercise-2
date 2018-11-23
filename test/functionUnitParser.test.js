@@ -119,6 +119,38 @@ describe('The for statement parser', () => {
         assert.deepEqual(actual, expected);
     });
 
+    it('is parsing a simple condition correctly', () => {
+        // arrange
+        let codeToTest = 'function f(){for(x = -y; x < 10; ++x){}}';
+
+        // act
+        ParseFunctionUnit(parseCode(codeToTest));
+        let actual = entries;
+        let expected = [
+            {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
+            {Line: 1, Type: 'for statement', Name: '', Condition: 'x = -y; x < 10; ++x', Value: ''}
+        ];
+
+        // assert
+        assert.deepEqual(actual, expected);
+    });
+
+    it('is parsing a simple condition correctly', () => {
+        // arrange
+        let codeToTest = 'function f(){for(let x = x-y; x < 10; ++x){}}';
+
+        // act
+        ParseFunctionUnit(parseCode(codeToTest));
+        let actual = entries;
+        let expected = [
+            {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
+            {Line: 1, Type: 'for statement', Name: '', Condition: 'x = x - y; x < 10; ++x', Value: ''}
+        ];
+
+        // assert
+        assert.deepEqual(actual, expected);
+    });
+
     it('is parsing a simple assignment correctly', () => {
         // arrange
         let codeToTest = 'function f(){for(let x = 0; x < 10; x = x + 1){x = x - 1;}}';
@@ -204,6 +236,23 @@ describe('The return statement parser', () => {
             {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
             {Line: 1, Type: 'variable declaration', Name: 'x', Condition: '', Value: ''},
             {Line: 1, Type: 'return statement', Name: '', Condition: '', Value: 'x'}
+        ];
+
+        // assert
+        assert.deepEqual(actual, expected);
+    });
+
+    it('is parsing a simple return statement correctly', () => {
+        // arrange
+        let codeToTest = 'function f(x){return;}';
+
+        // act
+        ParseFunctionUnit(parseCode(codeToTest));
+        let actual = entries;
+        let expected = [
+            {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
+            {Line: 1, Type: 'variable declaration', Name: 'x', Condition: '', Value: ''},
+            {Line: 1, Type: 'return statement', Name: '', Condition: '', Value: ''}
         ];
 
         // assert
