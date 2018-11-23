@@ -39,9 +39,9 @@ function RouteContentExtension(statement) {
     case 'VariableDeclaration':
         VariableDeclarationHandler(statement.declarations);
         break;
-    /*case 'VariableDeclarator':
-        VariableDeclaratorHandler(statement);
-        break;*/
+    case 'UpdateExpression':
+        UpdateExpressionHandler(statement);
+        break;
     case 'AssignmentExpression':
         AssignmentExpressionStatementHandler(statement);
         break;
@@ -110,6 +110,20 @@ function StatementHandler(statement) {
 }
 
 /* --------- Inner Handlers --------- */
+function UpdateExpressionHandler(expressionStatement){
+    let argument = expressionStatement.argument.name;
+    let update = expressionStatement.operator;
+
+    let expressionStatementEntry = {};
+
+    expressionStatementEntry.Line = expressionStatement.loc.start.line;
+    expressionStatementEntry.Type = 'update expression';
+    expressionStatementEntry.Name = argument;
+    expressionStatementEntry.Condition = '';
+    expressionStatementEntry.Value = expressionStatement.prefix ? update+argument : argument+update;
+
+    entries.push(expressionStatementEntry);
+}
 
 function AssignmentExpressionStatementHandler(expressionStatement) {
     let expressionStatementEntry = {};

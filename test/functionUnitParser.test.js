@@ -289,4 +289,38 @@ describe('The assignment expression parser', () => {
         // assert
         assert.deepEqual(actual, expected);
     });
+
+    it('is parsing simple update expression with prefix correctly', () => {
+        // arrange
+        let codeToTest = 'function f(x){--x;}';
+
+        // act
+        ParseFunctionUnit(parseCode(codeToTest));
+        let actual = entries;
+        let expected = [
+            {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
+            {Line: 1, Type: 'variable declaration', Name: 'x', Condition: '', Value: ''},
+            {Line: 1, Type: 'update expression', Name: 'x', Condition: '', Value: '--x'}
+        ];
+
+        // assert
+        assert.deepEqual(actual, expected);
+    });
+
+    it('is parsing simple update expression without correctly', () => {
+        // arrange
+        let codeToTest = 'function f(x){x++;}';
+
+        // act
+        ParseFunctionUnit(parseCode(codeToTest));
+        let actual = entries;
+        let expected = [
+            {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
+            {Line: 1, Type: 'variable declaration', Name: 'x', Condition: '', Value: ''},
+            {Line: 1, Type: 'update expression', Name: 'x', Condition: '', Value: 'x++'}
+        ];
+
+        // assert
+        assert.deepEqual(actual, expected);
+    });
 });
