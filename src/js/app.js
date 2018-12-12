@@ -6,7 +6,7 @@ $(document).ready(function () {
         let functionCode = $('#codePlaceholder').val();
         let parameters = $('#parametersPlaceholder').val();
 
-        let parsedCode = parseCode(functionCode, parameters.split(","));
+        let parsedCode = parseCode(functionCode, parameters);
 
         $('#parsedCode').html(parsedCode);
     });
