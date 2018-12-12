@@ -119,6 +119,55 @@ describe('The for statement parser', () => {
         assert.deepEqual(actual, expected);
     });
 
+    it('is parsing a simple binary expression correctly', () => {
+        // arrange
+        let codeToTest = 'function f(){for(x=0; x<10-(5 - 1) ;x++){}}';
+
+        // act
+        ParseFunctionUnit(parseCode(codeToTest));
+        let actual = entries;
+        let expected = [
+            {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
+            {Line: 1, Type: 'for statement', Name: '', Condition: 'x = 0; x < 10 - (5 - 1); x++', Value: ''}
+        ];
+
+        // assert
+        assert.deepEqual(actual, expected);
+    });
+
+    it('is parsing a simple binary expression correctly', () => {
+        // arrange
+        let codeToTest = 'function f(){for(x=0; x< 10 ;x++){let temp = arr[x];}}';
+
+        // act
+        ParseFunctionUnit(parseCode(codeToTest));
+        let actual = entries;
+        let expected = [
+            {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
+            {Line: 1, Type: 'for statement', Name: '', Condition: 'x = 0; x < 10; x++', Value: ''},
+            {Line: 1, Type: 'variable declaration', Name: 'temp', Condition: '', Value: 'arr[x]'}
+        ];
+
+        // assert
+        assert.deepEqual(actual, expected);
+    });
+
+    it('is parsing a simple binary expression correctly', () => {
+        // arrange
+        let codeToTest = 'function f(){for(x=0; x<  arr.length - (x + 1) ;x++){}}';
+
+        // act
+        ParseFunctionUnit(parseCode(codeToTest));
+        let actual = entries;
+        let expected = [
+            {Line: 1, Type: 'function declaration', Name: 'f', Condition: '', Value: ''},
+            {Line: 1, Type: 'for statement', Name: '', Condition: 'x = 0; x < arr[length] - (x + 1); x++', Value: ''}
+        ];
+
+        // assert
+        assert.deepEqual(actual, expected);
+    });
+
     it('is parsing a simple condition correctly', () => {
         // arrange
         let codeToTest = 'function f(){for(x = -y; x < 10; ++x){}}';

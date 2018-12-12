@@ -151,7 +151,12 @@ function VariableDeclaratorHandler(declarator){
     variableDeclaratorEntry.Type = 'variable declaration';
     variableDeclaratorEntry.Name = declarator.id.name;
     variableDeclaratorEntry.Condition = '';
-    variableDeclaratorEntry.Value = declarator.init != null ? declarator.init.value : '';
+    if(declarator.init == null)
+        variableDeclaratorEntry.Value = '';
+    else if(declarator.init.value != null)
+        variableDeclaratorEntry.Value = declarator.init.value;
+    else
+        variableDeclaratorEntry.Value = BasicExpressionExtractor(declarator.init);
 
     return variableDeclaratorEntry;
 }
@@ -223,7 +228,7 @@ function ReturnStatementHandler(returnStatement){
 /**
  * @return {string}
  */
-function BasicExpressionExtractor(expression){
+function BasicExpressionExtractor(expression, brackets = false){
     let expressionType = expression.type;
 
     switch(expressionType) {
@@ -236,7 +241,7 @@ function BasicExpressionExtractor(expression){
     case 'UnaryExpression':
         return expression.operator + '' + BasicExpressionExtractor(expression.argument);
     default:
-        return BasicExpressionExtractor(expression.left) + ' ' + expression.operator + ' ' + BasicExpressionExtractor(expression.right);
+        return (brackets ? '(' : '') + BasicExpressionExtractor(expression.left, true) + ' ' + expression.operator + ' ' + BasicExpressionExtractor(expression.right, true)  + (brackets ? ')' : '');
     }
 }
 
