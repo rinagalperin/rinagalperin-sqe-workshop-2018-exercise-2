@@ -15,17 +15,10 @@ function extractParameters(parameters_string){
     while(i < parameters_string.length){
         // ARRAY
         if(i < parameters_string.length && parameters_string.charAt(i) === '['){
-            let j = i + 1;
-            while(j < parameters_string.length && parameters_string.charAt(j) !== ']'){
-                j += 1;
-            }
+            let ans = compareParameter(parameters_string, i, ']', true);
 
-            j += 1;
-
-            let arrayParameter = parameters_string.substring(i, j);
-            parameters.push(arrayParameter);
-
-            i = j;
+            parameters.push(ans.parameter);
+            i = ans.i;
         }
         // WHITE SPACE
         else if(i < parameters_string.length && (parameters_string.charAt(i) === ' ' || parameters_string.charAt(i) === ',')){
@@ -33,28 +26,33 @@ function extractParameters(parameters_string){
         }
         // STRING
         else if(i < parameters_string.length && parameters_string.charAt(i) === '\''){
-            let j = i + 1;
-            while(j < parameters_string.length && parameters_string.charAt(j) !== '\''){
-                j += 1;
-            }
-            j += 1;
+            let ans = compareParameter(parameters_string, i, '\'', true);
 
-            let stringParameter = parameters_string.substring(i, j);
-
-            parameters.push(stringParameter);
-            i = j;
+            parameters.push(ans.parameter);
+            i = ans.i;
         }
         // REGULAR PARAMETER
         else{
-            let j = i + 1;
-            while(j < parameters_string.length && parameters_string.charAt(j) !== ','){
-                j += 1;
-            }
+            let ans = compareParameter(parameters_string, i, ',', false);
 
-            let regularParameter = parameters_string.substring(i, j);
-
-            parameters.push(regularParameter);
-            i = j;
+            parameters.push(ans.parameter);
+            i = ans.i;
         }
     }
+}
+
+function compareParameter(parameters_string, i, notEqual, extra){
+    let j = i + 1;
+    while(j < parameters_string.length && parameters_string.charAt(j) !== notEqual.toString()){
+        j += 1;
+    }
+
+    let parameter = parameters_string.substring(i, extra ? j + 1 : j);
+
+    let ans = [];
+
+    ans.i = extra ? j + 1 : j;
+    ans.parameter = parameter;
+
+    return ans;
 }
