@@ -1,8 +1,10 @@
 /* eslint-disable semi */
-import * as esprima from 'esprima';
+import {SymbolicSubstitution} from './symbolicSubstitution.js';
+import {PaintCodeRows} from './paintCodeRows.js';
 
-const parseCode = (codeToParse) => {
-    return esprima.parseScript(codeToParse, {loc:true});
+const parseCode = (functionCode, parameters) => {
+    let substitutedCode = SymbolicSubstitution(functionCode);
+    return PaintCodeRows(substitutedCode, parameters);
 };
 
 export {parseCode};
