@@ -37,32 +37,45 @@ function FunctionDeclarationHandler(symbol_table, parsed_code, lines){
     let function_body = parsed_code.body;
     let parameters_count = 1;
 
-    let entry = {};
-    entry.line = parsed_code.loc.start.line;
-    entry.offset = parsed_code.loc.start.column;
-    entry.value = 'function ' + parsed_code.id.name + '(';
+    let result_entry = {};
+    result_entry.line = parsed_code.loc.start.line;
+    result_entry.offset = parsed_code.loc.start.column;
+    result_entry.value = 'function ' + parsed_code.id.name + '(';
 
     for(let i in function_parameters){
         let parameter = function_parameters[i];
         symbol_table[parameter.name] = '';
 
-        entry.value += parameters_count < parsed_code.params.length ? parameter.name + ', ' : parameter.name + '){';
+        result_entry.value += parameters_count < parsed_code.params.length ? parameter.name + ', ' : parameter.name + '){';
         parameters_count += 1;
     }
 
-    result.push(entry);
+    result.push(result_entry);
     BlockStatementHandler(symbol_table, function_body, lines);
 }
 
 function BlockStatementHandler(symbol_table, parsed_code, lines){
     for(let i = 0; i < parsed_code.body.length; i++){
         let parsed_code_statement = parsed_code.body[i];
+        console.log(parsed_code_statement.type);
         router[parsed_code_statement.type](symbol_table, parsed_code_statement, lines);
     }
 }
 
 function VariableDeclarationHandler(symbol_table, parsed_code, lines){
+    for(let i in parsed_code.declarations){
+        VariableDeclaratorHandler(symbol_table, parsed_code.declarations[i], lines);
+    }
+}
 
+function VariableDeclaratorHandler(symbol_table, declarator, lines){
+    for(let i in entries){
+        let e = entries[i];
+
+        if(e['Line'] === declarator.loc.start.line && e['Name'] === declarator.id.name){
+            symbol_table[declarator.id.name] = e['Value'];
+        }
+    }
 }
 
 function AssignmentExpressionHandler(symbol_table, parsed_code, lines){
