@@ -75,7 +75,7 @@ function ArgumentsHandler(functionUnit){
         let functionArgumentsEntry = {};
 
         functionArgumentsEntry.Line = functionUnit.params[argument].loc.start.line;
-        functionArgumentsEntry.Type = 'variable declaration';
+        functionArgumentsEntry.Type = 'function parameter declaration';
         functionArgumentsEntry.Name = functionUnit.params[argument].name;
         functionArgumentsEntry.Condition = '';
         functionArgumentsEntry.Value = '';

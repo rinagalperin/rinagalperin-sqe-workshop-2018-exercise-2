@@ -4,12 +4,16 @@ export {extractParameters};
 let parameters;
 
 function PaintCodeRows(substitutedCode, parameters_string) {
-    parameters = [];
-    extractParameters(parameters_string);
-    console.log(parameters);
+    // extract the given function's parameters
+    parameters = extractParameters(parameters_string);
+
+    // apply to symbol table
+
+    // check if-else conditions and paint rows accordingly
 }
 
 function extractParameters(parameters_string){
+    parameters = [];
     let i = 0;
 
     while(i < parameters_string.length){
@@ -39,6 +43,8 @@ function extractParameters(parameters_string){
             i = ans.i;
         }
     }
+
+    return parameters;
 }
 
 function compareParameter(parameters_string, i, notEqual, extra){
