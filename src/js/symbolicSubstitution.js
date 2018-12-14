@@ -95,23 +95,36 @@ function VariableDeclarationHandler(symbol_table, parsed_code, lines){
 function VariableDeclaratorHandler(symbol_table, declarator, lines){
     for(let e of entries){
         if(e['Line'] === declarator.loc.start.line && e['Name'] === declarator.id.name){
-            symbol_table[declarator.id.name] = e['Value'];
+            symbol_table[declarator.id.name] = ExtractUpdatedValue(symbol_table, declarator.id.name, e['Value']);
         }
     }
 }
 
 function ExpressionStatementHandler(symbol_table, expression_statement, lines){
-    router[expression_statement.expression.type](symbol_table, expression_statement, lines);
+    router[expression_statement.expression.type](symbol_table, expression_statement.expression, lines);
 }
 
-function UpdateExpressionHandler(symbol_table, expression_statement, lines){
-    console.log(expression_statement)
+// TODO:
+function UpdateExpressionHandler(symbol_table, update_expression_statement, lines){
+    console.log(update_expression_statement);
+    console.log(update_expression_statement.left);
+    console.log(update_expression_statement.right);
+    console.log(entries)
 }
 
-function AssignmentExpressionHandler(symbol_table, expression_statement, lines){
-    console.log(expression_statement)
+function AssignmentExpressionHandler(symbol_table, assignment_expression_statement, lines){
+    let param = assignment_expression_statement.left.name;
+
+    for(let e of entries){
+        if(e['Line'] === assignment_expression_statement.loc.start.line && e['Name'] === param){
+            symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
+        }
+    }
+
+    console.log(symbol_table)
 }
 
+// TODO:
 function IfStatementHandler(symbol_table, parsed_code, lines){
     let symbol_table_tmp = {};
 
@@ -120,12 +133,27 @@ function IfStatementHandler(symbol_table, parsed_code, lines){
     });
 }
 
+// TODO:
 function WhileStatementHandler(symbol_table, parsed_code, lines){
 
 }
 
+// TODO:
 function ReturnStatementHandler(symbol_table, parsed_code, lines){
 
+}
+
+function ExtractUpdatedValue(symbol_table, param, new_assigned_value){
+    if(param in symbol_table){
+        let drill_down = new_assigned_value.split('*').join(',').split('-').join(',').split('+').join(',').split('/').join(',').split(' ').join(',').split(',');
+        for(let d of drill_down){
+            if(d !== "" && d in symbol_table){
+                new_assigned_value = new_assigned_value.replace(d, symbol_table[d]);
+            }
+        }
+    }
+
+    return new_assigned_value;
 }
 
 function InitRouter(){
