@@ -5,6 +5,7 @@ import {entries} from './functionUnitParser';
 export {SymbolicSubstitution}
 
 let result;
+
 let router;
 let symbol_table;
 let parsed_code;
@@ -80,7 +81,7 @@ function FunctionDeclarationHandler(symbol_table, parsed_code, lines){
 function BlockStatementHandler(symbol_table, parsed_code, lines){
     for(let i = 0; i < parsed_code.body.length; i++){
         let parsed_code_statement = parsed_code.body[i];
-        console.log(parsed_code_statement.type);
+        //console.log(parsed_code_statement.type);
         router[parsed_code_statement.type](symbol_table, parsed_code_statement, lines);
     }
 }
@@ -99,16 +100,16 @@ function VariableDeclaratorHandler(symbol_table, declarator, lines){
     }
 }
 
-function AssignmentExpressionHandler(symbol_table, parsed_code, lines){
-
+function ExpressionStatementHandler(symbol_table, expression_statement, lines){
+    router[expression_statement.expression.type](symbol_table, expression_statement, lines);
 }
 
-function ExpressionStatementHandler(symbol_table, parsed_code, lines){
-
+function UpdateExpressionHandler(symbol_table, expression_statement, lines){
+    console.log(expression_statement)
 }
 
-function UpdateExpressionHandler(symbol_table, parsed_code, lines){
-
+function AssignmentExpressionHandler(symbol_table, expression_statement, lines){
+    console.log(expression_statement)
 }
 
 function IfStatementHandler(symbol_table, parsed_code, lines){
@@ -144,8 +145,8 @@ function InitRouter(){
         'FunctionDeclaration': FunctionDeclarationHandler,
         'BlockStatement': BlockStatementHandler,
         'VariableDeclaration': VariableDeclarationHandler,
-        'AssignmentExpression': AssignmentExpressionHandler,
         'ExpressionStatement': ExpressionStatementHandler,
+        'AssignmentExpression': AssignmentExpressionHandler,
         'UpdateExpression' : UpdateExpressionHandler,
         'IfStatement': IfStatementHandler,
         'WhileStatement': WhileStatementHandler,
