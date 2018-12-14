@@ -3,9 +3,9 @@ export {extractParameters};
 
 let parameters;
 
-function PaintCodeRows(substitutedCode, parameters_string) {
+function PaintCodeRows(substitutedCode, input_vector_string) {
     // extract the given function's parameters
-    parameters = extractParameters(parameters_string);
+    parameters = extractParameters(input_vector_string);
 
     // apply to symbol table
 

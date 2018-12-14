@@ -7,25 +7,48 @@ export {SymbolicSubstitution}
 let result;
 let router;
 let symbol_table;
-let input_vector;
 let parsed_code;
 let original_lines;
 
 function SymbolicSubstitution(functionCode){
-    result = [];
-    input_vector = [];
+    result = []; // final function to be displayed
+    symbol_table = {}; // final parameters values to populate the arguments and check conditions
 
     router = InitRouter();
-
-    symbol_table = {};
     parsed_code = esprima.parseScript(functionCode, {loc:true});
-    ParseFunctionUnit(parsed_code);
-    parsed_code = parsed_code.body[0];
     original_lines = functionCode.split('\n');
+
+    let function_globals_indexes = GlobalVariablesHandler(symbol_table, parsed_code, original_lines);
+    ParseFunctionUnit(parsed_code.body[function_globals_indexes.function]);
+    parsed_code = parsed_code.body[function_globals_indexes.function];
 
     Route(symbol_table, parsed_code, original_lines);
 
     return result;
+}
+
+function GlobalVariablesHandler(symbol_table, parsed_code, lines){
+    let ans = {};
+    ans.globals = [];
+    ans.function = 0;
+
+    for(let i in parsed_code.body){
+        let unit = parsed_code.body[i];
+        unit.type === 'FunctionDeclaration' ? ans.function = i : ans.globals.push(i);
+    }
+
+    for(let global_index in ans.globals){
+        let global_declaration = parsed_code.body[global_index];
+        GlobalDeclarationHandler(symbol_table, global_declaration, lines);
+    }
+
+    return ans;
+}
+
+function GlobalDeclarationHandler(symbol_table, parsed_code, lines){
+    for(let declaration of parsed_code.declarations){
+        symbol_table[declaration.id.name] = declaration.init != null ? declaration.init.value : '';
+    }
 }
 
 function Route(symbol_table, parsed_code, lines){
@@ -63,15 +86,13 @@ function BlockStatementHandler(symbol_table, parsed_code, lines){
 }
 
 function VariableDeclarationHandler(symbol_table, parsed_code, lines){
-    for(let i in parsed_code.declarations){
-        VariableDeclaratorHandler(symbol_table, parsed_code.declarations[i], lines);
+    for(let declaration of parsed_code.declarations){
+        VariableDeclaratorHandler(symbol_table, declaration, lines);
     }
 }
 
 function VariableDeclaratorHandler(symbol_table, declarator, lines){
-    for(let i in entries){
-        let e = entries[i];
-
+    for(let e of entries){
         if(e['Line'] === declarator.loc.start.line && e['Name'] === declarator.id.name){
             symbol_table[declarator.id.name] = e['Value'];
         }
@@ -91,7 +112,23 @@ function UpdateExpressionHandler(symbol_table, parsed_code, lines){
 }
 
 function IfStatementHandler(symbol_table, parsed_code, lines){
+    let symbol_table_tmp = {};
 
+    Object.keys(symbol_table).forEach(function(symbol) {
+        symbol_table_tmp[symbol] = symbol_table[symbol];
+    });
+
+    // handlePreducate(exp, alternate, symbolTable);
+    // parseExp(exp.consequent, false, symbolTableIf);
+    //
+    // if(exp.alternate != null && exp.alternate.type === 'IfStatement'){
+    //     parseExp(exp.alternate, true, symbolTable);
+    // }
+    // else if(exp.alternate != null){
+    //     let elseStatement = 'else{';
+    //     addLineToResult('<div>' + elseStatement + '</div>');
+    //     parseExp(exp.alternate, true, symbolTable);
+    // }
 }
 
 function WhileStatementHandler(symbol_table, parsed_code, lines){

@@ -11,7 +11,7 @@ export {ParseFunctionUnit};
 
 function ParseFunctionUnit(functionUnit) {
     entries = [];
-    RouteContent(functionUnit.body[0]); // we need to parse only the first function
+    RouteContent(functionUnit); // we need to parse only the first function
 }
 
 /* --------- Main Handlers (contain nested statements / expressions) --------- */
