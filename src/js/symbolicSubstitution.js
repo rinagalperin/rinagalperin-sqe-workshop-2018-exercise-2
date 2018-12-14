@@ -118,18 +118,6 @@ function IfStatementHandler(symbol_table, parsed_code, lines){
     Object.keys(symbol_table).forEach(function(symbol) {
         symbol_table_tmp[symbol] = symbol_table[symbol];
     });
-
-    // handlePreducate(exp, alternate, symbolTable);
-    // parseExp(exp.consequent, false, symbolTableIf);
-    //
-    // if(exp.alternate != null && exp.alternate.type === 'IfStatement'){
-    //     parseExp(exp.alternate, true, symbolTable);
-    // }
-    // else if(exp.alternate != null){
-    //     let elseStatement = 'else{';
-    //     addLineToResult('<div>' + elseStatement + '</div>');
-    //     parseExp(exp.alternate, true, symbolTable);
-    // }
 }
 
 function WhileStatementHandler(symbol_table, parsed_code, lines){
