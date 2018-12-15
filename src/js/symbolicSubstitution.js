@@ -22,6 +22,7 @@ function SymbolicSubstitution(functionCode){
 
     Route(symbol_table, parsed_code);
 
+    //result.push({value: "}"});
     return result;
 }
 
@@ -119,7 +120,7 @@ function IfStatementHandler(symbol_table, parsed_code){
 
     let code_line = lines[result_entry.line - 1];
 
-    let drill_down = code_line.split('*').join(',').split('-').join(',').split('+').join(',').split('/').join(',').split(' ').join(',').split('(').join(',').split(')').join(',').split(',');
+    let drill_down = SplitByRegex(code_line);
     for(let d of drill_down){
         if(d !== "" && d in symbol_table){
             result_entry.value = code_line.replace(d, '('+ symbol_table[d] + ')');
@@ -128,14 +129,19 @@ function IfStatementHandler(symbol_table, parsed_code){
 
     result.push(result_entry);
 
-    let a = CopySymbolTable(symbol_table);
-    Route(a, parsed_code.consequent);
-
-    let b = CopySymbolTable(symbol_table);
-    Route(b, parsed_code.alternate, true);
+    if(parsed_code.consequent){
+        let symbol_table_cpy = CopySymbolTable(symbol_table);
+        Route(symbol_table_cpy, parsed_code.consequent);
+    }
 
     if(parsed_code.alternate){
-        result.push("}");
+        let symbol_table_cpy = CopySymbolTable(symbol_table);
+        Route(symbol_table_cpy, parsed_code.alternate, true);
+        if(parsed_code.alternate.type === 'BlockStatement') {
+            result.push({value: "}"});
+        }
+    }else{
+        result.push({value: "}"});
     }
 }
 
@@ -155,16 +161,25 @@ function WhileStatementHandler(symbol_table, parsed_code){
 
 // TODO: add lines to result
 function ReturnStatementHandler(symbol_table, parsed_code){
-    console.log(result)
-    //
-    // for(let line of result){
-    //     console.log(line.value);
-    // }
+    let result_entry = {};
+    result_entry.line = parsed_code.loc.start.line;
+    result_entry.offset = parsed_code.loc.start.column;
+
+    let code_line = lines[result_entry.line - 1];
+
+    let drill_down = SplitByRegex(code_line);
+    for(let d of drill_down){
+        if(d !== "" && d in symbol_table){
+            result_entry.value = code_line.replace(d, '('+ symbol_table[d] + ')');
+        }
+    }
+
+    console.log(result_entry);
 }
 
 function ExtractUpdatedValue(symbol_table, param, new_assigned_value){
     if(param in symbol_table){
-        let drill_down = new_assigned_value.split('*').join(',').split('-').join(',').split('+').join(',').split('/').join(',').split(' ').join(',').split('(').join(',').split(')').join(',').split(',');
+        let drill_down = SplitByRegex(new_assigned_value);
         for(let d of drill_down){
             if(d !== "" && d in symbol_table){
                 new_assigned_value = new_assigned_value.replace(d, '('+ symbol_table[d] + ')');
@@ -191,6 +206,10 @@ function CopySymbolTable(symbol_table){
     });
 
     return symbol_table_tmp;
+}
+
+function SplitByRegex(line){
+    return line.split('*').join(',').split('-').join(',').split('+').join(',').split('/').join(',').split(' ').join(',').split('(').join(',').split(')').join(',').split(';').join(',').split(',');
 }
 
 function InitRouter(){
