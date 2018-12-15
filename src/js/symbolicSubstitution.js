@@ -27,7 +27,6 @@ function SymbolicSubstitution(functionCode){
     parsed_code = parsed_code.body[function_globals_indexes.function];
 
     Route(symbol_table, parsed_code);
-
     result.push({value: "}"});
     return {result: result, conditions: conditions, symbol_table: symbol_table, args: args};
 }
@@ -55,7 +54,7 @@ function GlobalDeclarationHandler(symbol_table, parsed_code){
         if(declaration.init != null){
             if(declaration.init.value != null){
                 symbol_table[declaration.id.name] = declaration.init.value;
-            }else{
+            }else if(declaration.init.elements != null){
                 let ans = '[';
                 let arr = declaration.init.elements;
                 for(let elem of declaration.init.elements){
@@ -85,6 +84,8 @@ function Route(symbol_table, parsed_code, isElse = false){
 }
 
 function FunctionDeclarationHandler(symbol_table, parsed_code){
+    result.push({offset: 0, value: ''});
+
     let function_parameters = parsed_code.params;
     let function_body = parsed_code.body;
     let parameters_count = 1;
@@ -207,7 +208,14 @@ function ExtractUpdatedValue(symbol_table, param, new_assigned_value){
 function SetEntryValue(symbol_table, parsed_code, param){
     for(let e of entries){
         if(e['Line'] === parsed_code.loc.start.line && e['Name'] === param){
-            symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
+            if(e['Value'].includes('[')){
+                let arr_name = e['Value'].split('[')[0];
+                let location = e['Value'].substring(e['Value'].lastIndexOf("[") + 1, e['Value'].lastIndexOf("]"));
+                let arr = symbol_table[arr_name].substring(symbol_table[arr_name].lastIndexOf("[") + 1, symbol_table[arr_name].lastIndexOf("]")).split(',')
+                symbol_table[param] = arr[location].trim();
+            }else{
+                symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
+            }
         }
     }
 }
