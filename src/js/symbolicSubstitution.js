@@ -208,11 +208,18 @@ function ExtractUpdatedValue(symbol_table, param, new_assigned_value){
 function SetEntryValue(symbol_table, parsed_code, param){
     for(let e of entries){
         if(e['Line'] === parsed_code.loc.start.line && e['Name'] === param){
+            // c[0]
             if(e['Value'].includes('[')){
                 let arr_name = e['Value'].split('[')[0];
-                let location = e['Value'].substring(e['Value'].lastIndexOf("[") + 1, e['Value'].lastIndexOf("]"));
-                let arr = symbol_table[arr_name].substring(symbol_table[arr_name].lastIndexOf("[") + 1, symbol_table[arr_name].lastIndexOf("]")).split(',')
-                symbol_table[param] = arr[location].trim();
+                console.log(arr_name)
+                if(arr_name == ''){
+                    symbol_table[param] = e['Value'];
+                }else{
+                    let location = e['Value'].substring(e['Value'].lastIndexOf("[") + 1, e['Value'].lastIndexOf("]"));
+                    let arr = symbol_table[arr_name].substring(symbol_table[arr_name].lastIndexOf("[") + 1, symbol_table[arr_name].lastIndexOf("]")).split(',')
+                    let extra = e['Value'].split(']')[1];
+                    symbol_table[param] = arr[location].trim() + extra;
+                }
             }else{
                 symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
             }

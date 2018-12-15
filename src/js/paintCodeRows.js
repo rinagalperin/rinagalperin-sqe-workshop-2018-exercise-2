@@ -50,11 +50,14 @@ function PaintCodeRows(substitutedCode, conditions, symbol_table, input_vector_s
         }else if(line.value.includes('else')) {
             color = !isIf;
             sub_expr = "true";
+        }else if(line.value.includes('while')) {
+            let expr = line.value.split("while")[1].replace("{", "");
+            sub_expr = subInExpr(func_args, expr);
+            color = eval(sub_expr);
         }else if(line.value === "}") {
             ifStack.pop();
             isIf = ifStack.pop();
         }
-
 
         if(sub_expr != "") {
             if(eval(sub_expr) && color)
