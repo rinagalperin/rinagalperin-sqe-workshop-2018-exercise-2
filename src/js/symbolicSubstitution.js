@@ -8,6 +8,10 @@ let result;
 let router;
 let parsed_code;
 let lines;
+let conditions;
+let args;
+
+// TODO:  ************** handle arrays and strings. **************
 
 function SymbolicSubstitution(functionCode){
     result = []; // final function to be displayed
@@ -15,6 +19,8 @@ function SymbolicSubstitution(functionCode){
     router = InitRouter();
     parsed_code = esprima.parseScript(functionCode, {loc:true});
     lines = functionCode.split('\n');
+    conditions = {};
+    args = [];
 
     let function_globals_indexes = GlobalVariablesHandler(symbol_table, parsed_code); // returns: [function index in parsed_code.body, global variables indexes in parsed_code.body]
     ParseFunctionUnit(parsed_code.body[function_globals_indexes.function]);
@@ -22,8 +28,8 @@ function SymbolicSubstitution(functionCode){
 
     Route(symbol_table, parsed_code);
 
-    //result.push({value: "}"});
-    return result;
+    result.push({value: "}"});
+    return {result: result, conditions: conditions, symbol_table: symbol_table, args: args};
 }
 
 function GlobalVariablesHandler(symbol_table, parsed_code){
@@ -71,6 +77,7 @@ function FunctionDeclarationHandler(symbol_table, parsed_code){
     for(let i in function_parameters){
         let parameter = function_parameters[i];
         symbol_table[parameter.name] = parameter.name;
+        args.push(parameter.name);
 
         result_entry.value += parameters_count < parsed_code.params.length ? parameter.name + ', ' : parameter.name + '){';
         parameters_count += 1;
@@ -114,34 +121,27 @@ function AssignmentExpressionHandler(symbol_table, parsed_code){
 }
 
 function IfStatementHandler(symbol_table, parsed_code){
-    let result_entry = {};
-    result_entry.line = parsed_code.loc.start.line;
-    result_entry.offset = parsed_code.loc.start.column;
-
-    let code_line = lines[result_entry.line - 1];
-
-    let drill_down = SplitByRegex(code_line);
-    for(let d of drill_down){
-        if(d !== "" && d in symbol_table){
-            result_entry.value = code_line.replace(d, '('+ symbol_table[d] + ')');
-        }
-    }
-
+    let i = 1;
+    let result_entry = CreateResultEntry(symbol_table, parsed_code);
     result.push(result_entry);
 
     if(parsed_code.consequent){
+        i = i + 1;
         let symbol_table_cpy = CopySymbolTable(symbol_table);
         Route(symbol_table_cpy, parsed_code.consequent);
+        CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, result_entry.value);
     }
 
     if(parsed_code.alternate){
         let symbol_table_cpy = CopySymbolTable(symbol_table);
         Route(symbol_table_cpy, parsed_code.alternate, true);
+
         if(parsed_code.alternate.type === 'BlockStatement') {
-            result.push({value: "}"});
+            CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, i.toString() + ' else');
+            result.push({offset : result_entry.offset, value: "}"});
         }
     }else{
-        result.push({value: "}"});
+        result.push({offset : result_entry.offset, value: "}"});
     }
 }
 
@@ -154,27 +154,20 @@ function ElseHandler(symbol_table, parsed_code){
     result.push(result_entry);
 }
 
-// TODO: add lines to result
 function WhileStatementHandler(symbol_table, parsed_code){
+    let symbol_table_cpy = CopySymbolTable(symbol_table);
 
+    let result_entry = CreateResultEntry(symbol_table, parsed_code);
+    result.push(result_entry);
+
+    Route(CopySymbolTable(symbol_table), parsed_code.body);
+    result.push({offset : result_entry.offset, value: "}"});
+    CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, result_entry.value)
 }
 
-// TODO: add lines to result
 function ReturnStatementHandler(symbol_table, parsed_code){
-    let result_entry = {};
-    result_entry.line = parsed_code.loc.start.line;
-    result_entry.offset = parsed_code.loc.start.column;
-
-    let code_line = lines[result_entry.line - 1];
-
-    let drill_down = SplitByRegex(code_line);
-    for(let d of drill_down){
-        if(d !== "" && d in symbol_table){
-            result_entry.value = code_line.replace(d, '('+ symbol_table[d] + ')');
-        }
-    }
-
-    console.log(result_entry);
+    let result_entry = CreateResultEntry(symbol_table, parsed_code);
+    result.push(result_entry);
 }
 
 function ExtractUpdatedValue(symbol_table, param, new_assigned_value){
@@ -212,6 +205,36 @@ function SplitByRegex(line){
     return line.split('*').join(',').split('-').join(',').split('+').join(',').split('/').join(',').split(' ').join(',').split('(').join(',').split(')').join(',').split(';').join(',').split(',');
 }
 
+function CheckUpdatedSymbolTable(symbol_table, symbol_table_tmp, condition){
+    let new_symbol_table = CopySymbolTable(symbol_table);
+
+    Object.keys(symbol_table).forEach(function(symbol) {
+        if(symbol_table_tmp[symbol] !== symbol_table[symbol]){
+            new_symbol_table[symbol] = symbol_table_tmp[symbol];
+        }
+    });
+
+    conditions[condition] = new_symbol_table;
+}
+
+function CreateResultEntry(symbol_table, parsed_code){
+    let result_entry = {};
+    result_entry.line = parsed_code.loc.start.line;
+    result_entry.offset = parsed_code.loc.start.column;
+
+    let code_line = lines[result_entry.line - 1];
+
+    let drill_down = SplitByRegex(code_line);
+    for(let d of drill_down){
+        if(d !== "" && d in symbol_table){
+            code_line = code_line.replace(d, '('+ symbol_table[d] + ')');
+        }
+    }
+
+    result_entry.value = code_line;
+    return result_entry;
+}
+
 function InitRouter(){
     return {
         'FunctionDeclaration': FunctionDeclarationHandler,
@@ -225,5 +248,3 @@ function InitRouter(){
         'ReturnStatement': ReturnStatementHandler
     };
 }
-
-// TODO:  ************** handle arrays and strings. **************

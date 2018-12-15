@@ -3,11 +3,40 @@ export {extractParameters};
 
 let parameters;
 
-function PaintCodeRows(substitutedCode, input_vector_string) {
+function PaintCodeRows(substitutedCode, conditions, symbol_table, input_vector_string, args) {
     // extract the given function's parameters
     parameters = extractParameters(input_vector_string);
 
     // apply to symbol table
+    let func_args = {};
+    let i = 0;
+    for(let arg of args){
+        func_args[arg] = parameters[i];
+        i++;
+    }
+
+    let str = "";
+    for(let line of substitutedCode){
+        str += line.value + '<br>';
+    }
+
+    document.getElementById("parsedCode").innerHTML = str;
+
+    //console.log(func_args);
+
+
+    //
+    // Object.keys(symbol_table).forEach(function(symbol) {
+    //     Object.keys(func_args).forEach(function(arg) {
+    //         console.log(symbol_table[symbol])
+    //         console.log(arg)
+    //         // if(arg in symbol_table[symbol]){
+    //         //     symbol_table[symbol].replace(arg, func_args[arg]);
+    //         // }
+    //     });
+    // });
+    //
+    // console.log(symbol_table);
 
     // check if-else conditions and paint rows accordingly
 }
