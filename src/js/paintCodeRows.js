@@ -3,6 +3,16 @@ export {extractParameters};
 
 let parameters;
 
+function subInExpr(func_args, expr){
+    let sub_expr = expr;
+    Object.keys(func_args).forEach(function (arg) {
+        if (expr.includes(arg)) {
+            sub_expr = sub_expr.replace(arg, func_args[arg])
+        }
+    });
+    return sub_expr
+}
+
 function PaintCodeRows(substitutedCode, conditions, symbol_table, input_vector_string, args) {
     // extract the given function's parameters
     parameters = extractParameters(input_vector_string);
@@ -15,30 +25,48 @@ function PaintCodeRows(substitutedCode, conditions, symbol_table, input_vector_s
         i++;
     }
 
+    let ifStack = [];
+
     let str = "";
+    let isIf = false;
+
     for(let line of substitutedCode){
-        str += line.value + '<br>';
+        let sub_expr = "";
+        let color = false;
+        if(line.value.includes('else if')){
+            let expr = line.value.split("else if")[1].replace("{","");
+            sub_expr = subInExpr(func_args, expr);
+            color = eval(sub_expr) && !isIf;
+            isIf = !color;
+            ifStack.pop();
+            ifStack.push(color);
+        }
+        else if(line.value.includes('if')) {
+            let expr = line.value.split("if")[1].replace("{", "");
+            sub_expr = subInExpr(func_args, expr);
+            color = eval(sub_expr);
+            isIf = color;
+            ifStack.push(color);
+        }else if(line.value.includes('else')) {
+            color = !isIf;
+            sub_expr = "true";
+        }else if(line.value === "}") {
+            ifStack.pop();
+            isIf = ifStack.pop();
+        }
+
+
+        if(sub_expr != "") {
+            if(eval(sub_expr) && color)
+                str += '<div style="background-color: #90EE90">' + GetSpaces(line.offset) +  line.value + '</div> <br>';
+            else
+                str += '<div style="background-color: #ff5442">' + GetSpaces(line.offset) + line.value + '</div> <br>';
+        }else{
+            str += GetSpaces(line.offset) + line.value + '<br>';
+        }
     }
 
     document.getElementById("parsedCode").innerHTML = str;
-
-    //console.log(func_args);
-
-
-    //
-    // Object.keys(symbol_table).forEach(function(symbol) {
-    //     Object.keys(func_args).forEach(function(arg) {
-    //         console.log(symbol_table[symbol])
-    //         console.log(arg)
-    //         // if(arg in symbol_table[symbol]){
-    //         //     symbol_table[symbol].replace(arg, func_args[arg]);
-    //         // }
-    //     });
-    // });
-    //
-    // console.log(symbol_table);
-
-    // check if-else conditions and paint rows accordingly
 }
 
 function extractParameters(parameters_string){
@@ -88,6 +116,18 @@ function compareParameter(parameters_string, i, notEqual, extra){
 
     ans.i = extra ? j + 1 : j;
     ans.parameter = parameter;
+
+    return ans;
+}
+
+function GetSpaces(offset){
+    let i = 1;
+    let ans = '';
+
+    while(i <= offset){
+        ans += '&nbsp;';
+        i++;
+    }
 
     return ans;
 }

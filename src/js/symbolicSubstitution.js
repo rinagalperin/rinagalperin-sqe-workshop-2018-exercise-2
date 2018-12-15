@@ -121,6 +121,7 @@ function AssignmentExpressionHandler(symbol_table, parsed_code){
 }
 
 function IfStatementHandler(symbol_table, parsed_code){
+
     let i = 1;
     let result_entry = CreateResultEntry(symbol_table, parsed_code);
     result.push(result_entry);
@@ -171,14 +172,15 @@ function ReturnStatementHandler(symbol_table, parsed_code){
 }
 
 function ExtractUpdatedValue(symbol_table, param, new_assigned_value){
-    if(param in symbol_table){
-        let drill_down = SplitByRegex(new_assigned_value);
+    // if(param in symbol_table){
+        let drill_down = SplitByRegex(new_assigned_value.toString());
         for(let d of drill_down){
+
             if(d !== "" && d in symbol_table){
                 new_assigned_value = new_assigned_value.replace(d, '('+ symbol_table[d] + ')');
             }
         }
-    }
+    // }
 
     return new_assigned_value;
 }
