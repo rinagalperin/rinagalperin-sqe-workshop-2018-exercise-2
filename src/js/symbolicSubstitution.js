@@ -52,7 +52,27 @@ function GlobalVariablesHandler(symbol_table, parsed_code){
 
 function GlobalDeclarationHandler(symbol_table, parsed_code){
     for(let declaration of parsed_code.declarations){
-        symbol_table[declaration.id.name] = declaration.init != null ? declaration.init.value : '';
+        if(declaration.init != null){
+            if(declaration.init.value != null){
+                symbol_table[declaration.id.name] = declaration.init.value;
+            }else{
+                let ans = '[';
+                let arr = declaration.init.elements;
+                for(let elem of declaration.init.elements){
+                    ans += elem.value + ', ';
+                }
+                symbol_table[declaration.id.name] = ans.substring(0, ans.length-2) + ']';
+            }
+        }else{
+            symbol_table[declaration.id.name] = '';
+        }
+
+        let result_entry = {};
+        result_entry.line = parsed_code.loc.start.line;
+        result_entry.offset = parsed_code.loc.start.column;
+        result_entry.value = 'let ' + declaration.id.name + ' = ' + symbol_table[declaration.id.name] + ';';
+
+        result.push(result_entry);
     }
 }
 
@@ -121,7 +141,6 @@ function AssignmentExpressionHandler(symbol_table, parsed_code){
 }
 
 function IfStatementHandler(symbol_table, parsed_code){
-
     let i = 1;
     let result_entry = CreateResultEntry(symbol_table, parsed_code);
     result.push(result_entry);
@@ -204,7 +223,7 @@ function CopySymbolTable(symbol_table){
 }
 
 function SplitByRegex(line){
-    return line.split('*').join(',').split('-').join(',').split('+').join(',').split('/').join(',').split(' ').join(',').split('(').join(',').split(')').join(',').split(';').join(',').split(',');
+    return line.split('*').join('$').split('-').join('$').split('+').join('$').split('/').join('$').split(' ').join('$').split('(').join('$').split(')').join('$').split(';').join('$').split('$');
 }
 
 function CheckUpdatedSymbolTable(symbol_table, symbol_table_tmp, condition){

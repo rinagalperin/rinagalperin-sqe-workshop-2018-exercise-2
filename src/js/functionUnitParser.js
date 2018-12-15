@@ -240,6 +240,12 @@ function BasicExpressionExtractor(expression, brackets = false){
         return BasicExpressionExtractor(expression.object) + '[' + BasicExpressionExtractor(expression.property) + ']';
     case 'UnaryExpression':
         return expression.operator + '' + BasicExpressionExtractor(expression.argument);
+    case 'ArrayExpression':
+        let ans = '[';
+        for(let elem of expression.elements){
+            ans += BasicExpressionExtractor(elem) + ', ';
+        }
+        return ans.substring(0, ans.length-2) + ']';
     default:
         return (brackets ? '(' : '') + BasicExpressionExtractor(expression.left, true) + ' ' + expression.operator + ' ' + BasicExpressionExtractor(expression.right, true)  + (brackets ? ')' : '');
     }
