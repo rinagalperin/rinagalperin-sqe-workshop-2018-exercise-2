@@ -11,7 +11,7 @@ let lines;
 let conditions;
 let args;
 
-// TODO:  ************** handle arrays and strings. **************
+// TODO:  ************** handle arg[0] **************
 
 function SymbolicSubstitution(functionCode){
     result = []; // final function to be displayed
@@ -211,14 +211,17 @@ function SetEntryValue(symbol_table, parsed_code, param){
             // c[0]
             if(e['Value'].includes('[')){
                 let arr_name = e['Value'].split('[')[0];
-                console.log(arr_name)
-                if(arr_name == ''){
+                if(arr_name === ''){
                     symbol_table[param] = e['Value'];
                 }else{
                     let location = e['Value'].substring(e['Value'].lastIndexOf("[") + 1, e['Value'].lastIndexOf("]"));
-                    let arr = symbol_table[arr_name].substring(symbol_table[arr_name].lastIndexOf("[") + 1, symbol_table[arr_name].lastIndexOf("]")).split(',')
-                    let extra = e['Value'].split(']')[1];
-                    symbol_table[param] = arr[location].trim() + extra;
+                    if(symbol_table[arr_name].includes('[')){
+                        let arr = symbol_table[arr_name].substring(symbol_table[arr_name].lastIndexOf("[") + 1, symbol_table[arr_name].lastIndexOf("]")).split(',')
+                        let extra = e['Value'].split(']')[1];
+                        symbol_table[param] = arr[location].trim() + extra;
+                    }else{
+                        symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
+                    }
                 }
             }else{
                 symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
