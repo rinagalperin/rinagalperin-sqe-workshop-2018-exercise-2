@@ -2,7 +2,7 @@ import * as esprima from 'esprima';
 import {ParseFunctionUnit} from './functionUnitParser';
 import {entries} from './functionUnitParser';
 
-export {SymbolicSubstitution}
+export {SymbolicSubstitution};
 
 let result;
 let router;
@@ -10,9 +10,8 @@ let parsed_code;
 let lines;
 let conditions;
 let args;
-
-// TODO:  ************** handle arg[0] **************
-
+// TODO: not paint in green if outer condition is red!
+// TODO: support array[0] inside condition
 function SymbolicSubstitution(functionCode){
     result = []; // final function to be displayed
     let symbol_table = {}; // final parameters values to populate the arguments and check conditions
@@ -27,8 +26,9 @@ function SymbolicSubstitution(functionCode){
     parsed_code = parsed_code.body[function_globals_indexes.function];
 
     Route(symbol_table, parsed_code);
-    result.push({value: "}"});
-    return {result: result, conditions: conditions, symbol_table: symbol_table, args: args};
+    result.push({value: '}'});
+
+    return {result: result, symbol_table: symbol_table, args: args};
 }
 
 function GlobalVariablesHandler(symbol_table, parsed_code){
@@ -51,27 +51,30 @@ function GlobalVariablesHandler(symbol_table, parsed_code){
 
 function GlobalDeclarationHandler(symbol_table, parsed_code){
     for(let declaration of parsed_code.declarations){
-        if(declaration.init != null){
-            if(declaration.init.value != null){
-                symbol_table[declaration.id.name] = declaration.init.value;
-            }else if(declaration.init.elements != null){
-                let ans = '[';
-                let arr = declaration.init.elements;
-                for(let elem of declaration.init.elements){
-                    ans += elem.value + ', ';
-                }
-                symbol_table[declaration.id.name] = ans.substring(0, ans.length-2) + ']';
-            }
-        }else{
-            symbol_table[declaration.id.name] = '';
-        }
+        GlobalVariableInit(symbol_table, declaration);
 
         let result_entry = {};
         result_entry.line = parsed_code.loc.start.line;
         result_entry.offset = parsed_code.loc.start.column;
         result_entry.value = 'let ' + declaration.id.name + ' = ' + symbol_table[declaration.id.name] + ';';
-
         result.push(result_entry);
+    }
+}
+
+function GlobalVariableInit(symbol_table, declaration){
+    if(declaration.init != null){
+        if(declaration.init.value != null){
+            symbol_table[declaration.id.name] = declaration.init.value;
+        }else if(declaration.init.elements != null){
+            let ans = '[';
+            let arr = declaration.init.elements;
+            for(let elem of arr){
+                ans += elem.value + ', ';
+            }
+            symbol_table[declaration.id.name] = ans.substring(0, ans.length-2) + ']';
+        }
+    }else{
+        symbol_table[declaration.id.name] = '';
     }
 }
 
@@ -85,25 +88,20 @@ function Route(symbol_table, parsed_code, isElse = false){
 
 function FunctionDeclarationHandler(symbol_table, parsed_code){
     result.push({offset: 0, value: ''});
-
     let function_parameters = parsed_code.params;
     let function_body = parsed_code.body;
     let parameters_count = 1;
-
     let result_entry = {};
     result_entry.line = parsed_code.loc.start.line;
     result_entry.offset = parsed_code.loc.start.column;
-    result_entry.value = 'function ' + parsed_code.id.name + '(';
-
+    function_parameters.length === 0 ? result_entry.value = 'function ' + parsed_code.id.name + '(){' : result_entry.value = 'function ' + parsed_code.id.name + '(';
     for(let i in function_parameters){
         let parameter = function_parameters[i];
         symbol_table[parameter.name] = parameter.name;
         args.push(parameter.name);
-
         result_entry.value += parameters_count < parsed_code.params.length ? parameter.name + ', ' : parameter.name + '){';
         parameters_count += 1;
     }
-
     result.push(result_entry);
     BlockStatementHandler(symbol_table, function_body);
 }
@@ -145,32 +143,28 @@ function IfStatementHandler(symbol_table, parsed_code){
     let i = 1;
     let result_entry = CreateResultEntry(symbol_table, parsed_code);
     result.push(result_entry);
-
     if(parsed_code.consequent){
         i = i + 1;
         let symbol_table_cpy = CopySymbolTable(symbol_table);
         Route(symbol_table_cpy, parsed_code.consequent);
         CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, result_entry.value);
     }
-
     if(parsed_code.alternate){
         let symbol_table_cpy = CopySymbolTable(symbol_table);
         Route(symbol_table_cpy, parsed_code.alternate, true);
-
         if(parsed_code.alternate.type === 'BlockStatement') {
             CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, i.toString() + ' else');
-            result.push({offset : result_entry.offset, value: "}"});
+            result.push({offset : result_entry.offset, value: '}'});
         }
-    }else{
-        result.push({offset : result_entry.offset, value: "}"});
-    }
+    }else
+        result.push({offset : result_entry.offset, value: '}'});
 }
 
 function ElseHandler(symbol_table, parsed_code){
     let result_entry = {};
     result_entry.line = parsed_code.loc.start.line;
     result_entry.offset = parsed_code.loc.start.column;
-    result_entry.value = "}else {";
+    result_entry.value = '}else {';
 
     result.push(result_entry);
 }
@@ -182,8 +176,8 @@ function WhileStatementHandler(symbol_table, parsed_code){
     result.push(result_entry);
 
     Route(CopySymbolTable(symbol_table), parsed_code.body);
-    result.push({offset : result_entry.offset, value: "}"});
-    CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, result_entry.value)
+    result.push({offset : result_entry.offset, value: '}'});
+    CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, result_entry.value);
 }
 
 function ReturnStatementHandler(symbol_table, parsed_code){
@@ -192,15 +186,13 @@ function ReturnStatementHandler(symbol_table, parsed_code){
 }
 
 function ExtractUpdatedValue(symbol_table, param, new_assigned_value){
-    // if(param in symbol_table){
-        let drill_down = SplitByRegex(new_assigned_value.toString());
-        for(let d of drill_down){
+    let drill_down = SplitByRegex(new_assigned_value.toString());
+    for(let d of drill_down){
 
-            if(d !== "" && d in symbol_table){
-                new_assigned_value = new_assigned_value.replace(d, '('+ symbol_table[d] + ')');
-            }
+        if(d !== '' && d in symbol_table){
+            new_assigned_value = new_assigned_value.replace(d, '('+ symbol_table[d] + ')');
         }
-    // }
+    }
 
     return new_assigned_value;
 }
@@ -208,24 +200,29 @@ function ExtractUpdatedValue(symbol_table, param, new_assigned_value){
 function SetEntryValue(symbol_table, parsed_code, param){
     for(let e of entries){
         if(e['Line'] === parsed_code.loc.start.line && e['Name'] === param){
-            // c[0]
-            if(e['Value'].includes('[')){
-                let arr_name = e['Value'].split('[')[0];
-                if(arr_name === ''){
-                    symbol_table[param] = e['Value'];
-                }else{
-                    let location = e['Value'].substring(e['Value'].lastIndexOf("[") + 1, e['Value'].lastIndexOf("]"));
-                    if(symbol_table[arr_name].includes('[')){
-                        let arr = symbol_table[arr_name].substring(symbol_table[arr_name].lastIndexOf("[") + 1, symbol_table[arr_name].lastIndexOf("]")).split(',')
-                        let extra = e['Value'].split(']')[1];
-                        symbol_table[param] = arr[location].trim() + extra;
-                    }else{
-                        symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
-                    }
-                }
+            if(e['Value'].toString().includes('[')){
+                ArrayVariableHandler(symbol_table, param, e);
             }else{
                 symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
             }
+        }
+    }
+}
+
+function ArrayVariableHandler(symbol_table, param, e){
+    let arr_name = e['Value'].split('[')[0];
+    if(arr_name === ''){
+        symbol_table[param] = e['Value'];
+    }else{
+        let location = e['Value'].substring(e['Value'].lastIndexOf('[') + 1, e['Value'].lastIndexOf(']'));
+        if(symbol_table[arr_name].includes('[')){
+            let arr = symbol_table[arr_name].substring(
+                symbol_table[arr_name].lastIndexOf('[') + 1,
+                symbol_table[arr_name].lastIndexOf(']')).split(',');
+            let extra = e['Value'].split(']')[1];
+            symbol_table[param] = arr[location].trim() + extra;
+        }else{
+            symbol_table[param] = ExtractUpdatedValue(symbol_table, param, e['Value']);
         }
     }
 }
@@ -265,7 +262,7 @@ function CreateResultEntry(symbol_table, parsed_code){
 
     let drill_down = SplitByRegex(code_line);
     for(let d of drill_down){
-        if(d !== "" && d in symbol_table){
+        if(d !== '' && d in symbol_table){
             code_line = code_line.replace(d, '('+ symbol_table[d] + ')');
         }
     }

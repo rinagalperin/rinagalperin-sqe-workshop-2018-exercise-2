@@ -1,7 +1,7 @@
 import assert from 'assert';
-import {ParseFunctionUnit} from '../src/js/functionUnitParser';
-import {parseCode} from '../src/js/code-analyzer';
-import {entries} from '../src/js/functionUnitParser';
+import {ParseFunctionUnit} from './js/functionUnitParser';
+import {parseCode} from './js/code-analyzer';
+import {entries} from './js/functionUnitParser';
 
 /* --------- If Statement Tests --------- */
 

@@ -241,14 +241,21 @@ function BasicExpressionExtractor(expression, brackets = false){
     case 'UnaryExpression':
         return expression.operator + '' + BasicExpressionExtractor(expression.argument);
     case 'ArrayExpression':
-        let ans = '[';
-        for(let elem of expression.elements){
-            ans += BasicExpressionExtractor(elem) + ', ';
-        }
-        return ans.substring(0, ans.length-2) + ']';
+        return ExtractArrayExpression(expression);
     default:
         return (brackets ? '(' : '') + BasicExpressionExtractor(expression.left, true) + ' ' + expression.operator + ' ' + BasicExpressionExtractor(expression.right, true)  + (brackets ? ')' : '');
     }
+}
+
+/**
+ * @return {string}
+ */
+function ExtractArrayExpression(expression){
+    let ans = '[';
+    for(let elem of expression.elements){
+        ans += BasicExpressionExtractor(elem) + ', ';
+    }
+    return ans.substring(0, ans.length-2) + ']';
 }
 
 /**

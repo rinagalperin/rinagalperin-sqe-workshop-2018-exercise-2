@@ -1,4 +1,4 @@
-/* eslint-disable semi */
+/* eslint-disable */
 import {SymbolicSubstitution} from './symbolicSubstitution.js';
 import {PaintCodeRows} from './paintCodeRows.js';
 
@@ -7,19 +7,21 @@ export {parseCode};
 const parseCode = (functionCode, parameters) => {
     let params = ExtractParameters(parameters);
     let substitution_result = SymbolicSubstitution(functionCode);
+    console.log(substitution_result)
+
     let substitutedCode = substitution_result.result;
-    let conditions = substitution_result.conditions;
+    //let conditions = substitution_result.conditions;
     let symbol_table = substitution_result.symbol_table;
     let args = substitution_result.args;
 
-    return PaintCodeRows(substitutedCode, conditions, symbol_table, params, args);
+    return PaintCodeRows(substitutedCode, symbol_table, params, args);
 };
 
 function ExtractParameters(parameters_string){
     let parameters = [];
     let i = 0;
 
-    while(i < parameters_string.length){
+    while(parameters_string !== undefined && i < parameters_string.length){
         // ARRAY
         if(i < parameters_string.length && parameters_string.charAt(i) === '['){
             let ans = compareParameter(parameters_string, i, ']', true);
