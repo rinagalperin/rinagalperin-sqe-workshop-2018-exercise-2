@@ -1,6 +1,4 @@
-/* eslint-disable */
 import {SymbolicSubstitution} from './symbolicSubstitution.js';
-import {PaintCodeRows} from './paintCodeRows.js';
 
 export {parseCode};
 
@@ -14,7 +12,7 @@ const parseCode = (functionCode, parameters) => {
     let symbol_table = substitution_result.symbol_table;
     let args = substitution_result.args;
 
-    return PaintCodeRows(substitutedCode, symbol_table, params, args);
+    return [substitutedCode, symbol_table, params, args];
 };
 
 function ExtractParameters(parameters_string){

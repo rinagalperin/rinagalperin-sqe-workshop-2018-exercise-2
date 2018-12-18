@@ -1,6 +1,6 @@
 import * as esprima from 'esprima';
-import {ParseFunctionUnit} from './functionUnitParser';
-import {entries} from './functionUnitParser';
+import {ParseFunctionUnit} from '../../functionUnitParser';
+import {entries} from '../../functionUnitParser';
 
 export {SymbolicSubstitution};
 
@@ -56,22 +56,22 @@ function GlobalDeclarationHandler(symbol_table, parsed_code){
         let result_entry = {};
         result_entry.line = parsed_code.loc.start.line;
         result_entry.offset = parsed_code.loc.start.column;
-        result_entry.value = 'let ' + declaration.id.name + ' = ' + symbol_table[declaration.id.name] + ';';
+        symbol_table[declaration.id.name] === '' ? result_entry.value = 'let ' + declaration.id.name + ';' : result_entry.value = 'let ' + declaration.id.name + ' = ' + symbol_table[declaration.id.name] + ';';
         result.push(result_entry);
     }
 }
 
 function GlobalVariableInit(symbol_table, declaration){
     if(declaration.init != null){
-        if(declaration.init.value != null){
-            symbol_table[declaration.id.name] = declaration.init.value;
-        }else if(declaration.init.elements != null){
+        if(declaration.init.elements != null){
             let ans = '[';
             let arr = declaration.init.elements;
             for(let elem of arr){
                 ans += elem.value + ', ';
             }
             symbol_table[declaration.id.name] = ans.substring(0, ans.length-2) + ']';
+        }else{
+            symbol_table[declaration.id.name] = declaration.init.value;
         }
     }else{
         symbol_table[declaration.id.name] = '';
@@ -143,12 +143,12 @@ function IfStatementHandler(symbol_table, parsed_code){
     let i = 1;
     let result_entry = CreateResultEntry(symbol_table, parsed_code);
     result.push(result_entry);
-    if(parsed_code.consequent){
-        i = i + 1;
-        let symbol_table_cpy = CopySymbolTable(symbol_table);
-        Route(symbol_table_cpy, parsed_code.consequent);
-        CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, result_entry.value);
-    }
+    //if(parsed_code.consequent){
+    i = i + 1;
+    let symbol_table_cpy = CopySymbolTable(symbol_table);
+    Route(symbol_table_cpy, parsed_code.consequent);
+    CheckUpdatedSymbolTable(symbol_table, symbol_table_cpy, result_entry.value);
+    // }
     if(parsed_code.alternate){
         let symbol_table_cpy = CopySymbolTable(symbol_table);
         Route(symbol_table_cpy, parsed_code.alternate, true);
@@ -267,7 +267,7 @@ function CreateResultEntry(symbol_table, parsed_code){
         }
     }
 
-    result_entry.value = code_line;
+    result_entry.value = code_line.trim();
     return result_entry;
 }
 
