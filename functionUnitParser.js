@@ -1,5 +1,3 @@
-
-
 /* --------- Global Variables --------- */
 
 let entries = [];
